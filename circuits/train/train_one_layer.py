@@ -74,7 +74,7 @@ def train():
     # new writer for each run based on time
     writer = SummaryWriter(os.path.join(config.system.work_dir, 'tensorboard', time.strftime("%Y-%m-%d_%H-%M-%S")))
 
-    data_dir = "../../data/openwebtext"
+    data_dir = "/home/matthew/data/openwebtext"
     if not os.path.exists(data_dir):
         raise ValueError("data not found, please run openwebtext.py")
 
