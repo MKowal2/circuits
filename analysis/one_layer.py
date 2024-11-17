@@ -1,4 +1,6 @@
 import json
+import sys
+sys.path.insert(0, '.')
 import numpy as np
 import torch
 import tiktoken
@@ -57,8 +59,8 @@ def source_to_dest(tok, tokenizer, head_weights, embedding_weights, head,
         dst = dst - np.array(qk_averages)
 
     # reweight by token frequency
-    freq = np.load('openwebtext_gpt2_averages.npy')
-    dst = dst * (freq**0.1)
+    # freq = np.load('openwebtext_gpt2_averages.npy')
+    # dst = dst * (freq**0.1)
 
     tdst = torch.from_numpy(dst)
     top = torch.topk(tdst, 5)
@@ -99,7 +101,7 @@ def head_qk_ov_for_token(token, head_weights, embedding_weights, head, tokenizer
 if __name__=="__main__":
     enc = tiktoken.get_encoding("gpt2")
 
-    weights = torch.load("../from_odin/big_drop_2_48000.pt", map_location='cpu')
+    weights = torch.load("out/one_layer_attn_v1/latest_model_48000.pt", map_location='cpu')
 
     for weight in weights:
         print(weight, weights[weight].shape)
@@ -110,17 +112,17 @@ if __name__=="__main__":
 
     # # compute average qk values for each head.
     # for h in range(n_heads):
-    #     h_w = get_weights_for_head(weights, h, n_heads, d_model)
+    #     h_w = get_weights_for_head(weights, 0, h, n_heads, d_model)
     #     save_qk_averages_for_head(h_w, h)
 
-    # # construct a model and generate some text
-    # config.model.block_size = config.trainer.block_size
-    # model = OneLayerAttnTransformer(config.model)
-    # model.load_state_dict(weights)
-    # idxs = enc.encode(" hello there. general")
-    # in_batch = torch.tensor(idxs).unsqueeze(0)
-    # generated = model.generate(in_batch, max_new_tokens=10)
-    # print(enc.decode_tokens_bytes(generated[0].tolist()))
+    # construct a model and generate some text
+    config.model.block_size = config.trainer.block_size
+    model = OneLayerAttnTransformer(config.model)
+    model.load_state_dict(weights)
+    idxs = enc.encode(" hello there. general")
+    in_batch = torch.tensor(idxs).unsqueeze(0)
+    generated = model.generate(in_batch, max_new_tokens=10)
+    print(enc.decode_tokens_bytes(generated[0].tolist()))
 
     # extract the weights for each head
     head_weights = []
@@ -189,5 +191,5 @@ if __name__=="__main__":
         qkov_per_head.append(qkov_per_token)
     
     # print("saving")
-    # json.dump(qkov_per_head, open("qkov_per_head.json", "w"))
+    json.dump(qkov_per_head, open("qkov_per_head.json", "w"))
 

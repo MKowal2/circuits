@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(0, '.')
 import os
 import time
 from functools import partial
@@ -17,7 +19,7 @@ def get_config():
     # system
     C.system = CN()
     C.system.seed = 3407
-    C.system.work_dir = '../../out/big_drop_2'
+    C.system.work_dir = 'out/one_layer_attn_v1'
 
     # model
     C.model = OneLayerAttnTransformer.get_default_config()
@@ -30,7 +32,7 @@ def get_config():
     # trainer
     C.trainer = Trainer.get_default_config()
     C.trainer.block_size = 2048
-    C.trainer.batch_size = 32
+    C.trainer.batch_size = 16
     C.trainer.micro_batch_size = 8
 
     C.trainer.learning_rate = 2e-4
@@ -45,8 +47,10 @@ def get_config():
 
 
 def batch_end_callback(trainer, writer, config):
+    # print(trainer.iter_num)
     if trainer.iter_num % 10 == 0:
         # log training loss
+        print('Iteration: {} Training Loss: {}'.format(trainer.iter_num, trainer.loss))
         writer.add_scalar('train_loss', trainer.loss, trainer.iter_num)
         writer.add_scalar('learning_rate', trainer.current_lr, trainer.iter_num)
 
@@ -73,7 +77,7 @@ def train():
 
     # new writer for each run based on time
     writer = SummaryWriter(os.path.join(config.system.work_dir, 'tensorboard', time.strftime("%Y-%m-%d_%H-%M-%S")))
-
+    print(os.path.join(config.system.work_dir, 'tensorboard', time.strftime("%Y-%m-%d_%H-%M-%S")))
     data_dir = "/home/matthew/data/openwebtext"
     if not os.path.exists(data_dir):
         raise ValueError("data not found, please run openwebtext.py")

@@ -147,6 +147,7 @@ class Trainer:
                 logits, self.loss = model(x, y)
 
                 self.loss.backward()
+                # print(f'Iteration {_}, Loss {self.loss}')
 
             torch.nn.utils.clip_grad_norm_(model.parameters(), config.grad_norm_clip)
             self.optimizer.step()
