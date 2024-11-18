@@ -121,7 +121,7 @@ if __name__=="__main__":
     model.load_state_dict(weights)
     idxs = enc.encode(" hello there. general")
     in_batch = torch.tensor(idxs).unsqueeze(0)
-    generated = model.generate(in_batch, max_new_tokens=10)
+    generated = model.generate(in_batch, max_new_tokens=10) # generate 10 tokens
     print(enc.decode_tokens_bytes(generated[0].tolist()))
 
     # extract the weights for each head
@@ -190,6 +190,10 @@ if __name__=="__main__":
             qkov_per_token.append(res)
         qkov_per_head.append(qkov_per_token)
     
-    # print("saving")
-    json.dump(qkov_per_head, open("qkov_per_head.json", "w"))
+    print("saving")
+    # turn list into dict
+    qkov_per_head_dict = {str(i): qkov_per_head[i] for i in range(n_heads)}
+    # save as json
+
+    # json.dump(qkov_per_head_dict, open("qkov_per_head.json", "w"))
 

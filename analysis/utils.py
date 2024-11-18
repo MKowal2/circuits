@@ -17,7 +17,7 @@ def get_weights_for_head(weights, layer, head, n_heads, d_model, apply_layernorm
     """ Get the weights for a single head. """
     d_head = d_model // n_heads
 
-    w_v = weights[f'b{layer}.attn.in_proj_weight'][2*d_model:]
+    w_v = weights[f'b{layer}.attn.in_proj_weight'][2*d_model:] # need to grab 2*d_model to get w_v since w_q and w_k are before it
     w_o = weights[f'b{layer}.attn.out_proj.weight'] 
 
     w_v_h = w_v[head*d_head: (head+1)*d_head, :]
@@ -88,10 +88,13 @@ def get_embedding_weights(weights, d_model, norm_emb=False, final_layernorm=True
 def get_ov_eigenvalues(wh, we):
     """
     Get the eigenvalues for the w_u @ w_o @ w_v @ w_e matrix. Equivalent to
-    the eigenvalues of the w_v @ w_e @ w_u @ w_o matrix.
+    the eigenvalues of the w_v @ w_e @ w_u @ w_o matrix due to cyclic property of matrices. Not actually true since
+    matrices are not square...
     """
-    m = wh['w_v'] @ we['w_e'] @ we['w_u'] @ wh['w_o']
-    return np.linalg.eigvals(m)
+    # Warning: performing the real calculation gives oom error:
+    # out = np.linalg.eigvals(wh['w_u'] @ wh['w_o'] @ wh['w_v'] @ we['w_e'])
+    out = np.linalg.eigvals(wh['w_v'] @ we['w_e'] @ we['w_u'] @ wh['w_o'])
+    return out
 
 def get_qk_eigenvalues(wh, wh_prev, we):
     """
